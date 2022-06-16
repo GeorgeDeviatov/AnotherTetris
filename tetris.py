@@ -6,28 +6,21 @@ pg.init()
 
 
 class App:
-    def __init__(self,scale_screen,scale_game,fps,step_time,environment):
-        self.width_sc = scale_screen[0]
-        self.height_sc = scale_screen[1]
-        self.width_gm = scale_game[0]
-        self.height_gm = scale_game[1]
-        self.screen = pg.display.set_mode((self.width_sc,self.height_sc))
-        self.fps = fps
-        self.step_time = step_time
+    def __init__(self,environment):
         self.clock = pg.time.Clock()
         self.environment = environment
 
 
     
-    def set_draw(self):# Very bad realization. I am so sleepy
+    def set_draw(self):# Very bad realization/
         #Not so bad as I thought but anyway
         self.screen = pg.display.set_mode((1200,800))
         clock = pg.time.Clock()
         clicked = False
         end = False
         que = 0
-        questions = [["Width",1200,''],
-                     ["Height",800,''],["FPS",30,''],["Speed",0.5,'']]
+        questions = [["Width",1200,'1200'],
+                     ["Height",800,'800'],["FPS",30,'30'],["Step time",160,'160'],['Aceleration',1,'1']]
         
         x,y = 20,20
         for apply in questions:
@@ -37,6 +30,7 @@ class App:
                 x += 400
             else:
                 y += 100
+                x = 20
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -69,7 +63,7 @@ class App:
             y = 20
             x = 20
             for apply in questions:
-                self.write(apply[0],(255,0,0),(x,y),100//len(apply[0]))
+                self.write(apply[0],(255,0,0),(x,y),170//len(apply[0]))
                 pg.draw.polygon(self.screen,(255,255,255),apply[3])
                 self.write(apply[2],(0,255,0),(x+200,y),100//(len(apply[2])+1))
                 
@@ -77,10 +71,12 @@ class App:
                     x += 400
                 else:
                     y += 100
+                    x = 20
             
             pg.display.flip()
             self.screen.fill((0,0,0))
             clock.tick(30)
+            pg.display.set_caption("Settings")
         
         for q in questions:
             try:
@@ -91,17 +87,16 @@ class App:
         self.width_sc = questions[0][2]
         self.height_sc = questions[1][2]
         self.fps = questions[2][2]
-        self.step_time = questions[3][2] // 1000
+        self.environment.step_time = questions[3][2]
+        self.environment.acel = questions[4][2]
         self.width_gm = int((self.width_sc / 3 ) * 2)
         self.height_gm = int((self.height_sc / 3) * 2)
         self.size_x = self.width_gm/self.environment.x
         self.size_y = self.height_gm/self.environment.y
-    
-    
-    def remake(self):
         self.screen = pg.display.set_mode((self.width_sc,self.height_sc))
-        self.width_gm = int((self.width_sc / 3) * 2)
-        self.height_gm = int((self.height_sc/3)*2)
+    
+    
+
     
     def draw_grid(self):
         for x in range(self.environment.x+1):
@@ -149,6 +144,7 @@ class App:
                     if pg.key.name(event.key) == 'return':
                         if self.environment.end_game:
                             self.environment.end_game = False
+                            self.environment.spawn()
                     elif pg.key.name(event.key) == 'right':
                         self.environment.move('right')
                     elif pg.key.name(event.key) == 'left':
@@ -159,6 +155,14 @@ class App:
                         self.environment.rotate('left')
                     elif pg.key.name(event.key) == 'p':
                         self.environment.rotate('right')
+                    elif pg.key.name(event.key) == 's':
+                        if self.environment.end_game:
+                            self.set_draw()
+                    elif pg.key.name(event.key) == 'e':
+                        if not(self.environment.end_game):
+                            self.environment.end_game = True
+                            self.environment.score = 0
+                            self.environment.clean_all()
                         
             if self.environment.end_game:
                     tx_1 = "Another Tetris"
@@ -170,7 +174,7 @@ class App:
                     
             else:
                 prov_time = pg.time.get_ticks() - begin_time
-                if prov_time >= self.step_time:
+                if prov_time >= self.environment.step_time:
                     self.environment.update()
                     begin_time = pg.time.get_ticks()
                 self.draw_field()
@@ -191,7 +195,7 @@ class App:
             
             pg.display.flip()
             self.clock.tick(self.fps)
-            pg.display.set_caption(str(self.clock.get_fps()))
+            pg.display.set_caption("FPS:"+str(int(self.clock.get_fps())))
             self.screen.fill((0,0,0))
 
 
@@ -256,7 +260,7 @@ class Environment:
         new_fig = new_fig_cl()
         
         self.new_fig = new_fig
-        self.new_fig.color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+        self.new_fig.color = (random.randint(50,255),random.randint(50,255),random.randint(50,255))
         
         self.new_fig.coords = self.plus( self.new_fig.places[0] , [4,0])
         self.new_fig.pos = [4,0]
@@ -323,6 +327,8 @@ class Environment:
         else:
             self.check_lines()
             self.spawn()
+            self.step_time -= self.acel
+            
     
     def move(self,direction):
         where = 0
@@ -371,7 +377,6 @@ if __name__ == '__main__':
     
     
     environment = Environment(10,20,figures)
-    app = App((1200,800),(1000,500),30,500,environment)
+    app = App(environment)
     app.set_draw()
-    app.remake()
     app.draw()
