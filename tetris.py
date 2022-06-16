@@ -91,7 +91,9 @@ class App:
         self.width_sc = questions[0][2]
         self.height_sc = questions[1][2]
         self.fps = questions[2][2]
-        self.speed = questions[3][2] // 1000
+        self.step_time = questions[3][2] // 1000
+        self.width_gm = int((self.width_sc / 3 ) * 2)
+        self.height_gm = int((self.height_sc / 3) * 2)
         self.size_x = self.width_gm/self.environment.x
         self.size_y = self.height_gm/self.environment.y
     
