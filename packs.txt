@@ -1,0 +1,4 @@
+0 Cube L_Figure_1 L_Figure_2 Triangle Z_Figure_1 Z_Figure_2 Stick 
+1 Cube L_Figure_1 L_Figure_2 Triangle Z_Figure_1 Z_Figure_2 Stick 
+2 Cube 
+3 bred 
