@@ -19,8 +19,8 @@ class App:
         clicked = False
         end = False
         que = 0
-        questions = [["Width",1200,'1200'],
-                     ["Height",800,'800'],["FPS",30,'30'],["Step time",160,'160'],['Aceleration',1,'1'],
+        questions = [["Width_pixels",1200,'1200'],
+                     ["Height_pixels",800,'800'],['Width_cells',10,'10'],['Height_cells',20,'20'],["FPS",30,'30'],["Step time",160,'160'],['Aceleration',1,'1'],
                      ["Pack",0,'0']]
         
         x,y = 20,20
@@ -96,10 +96,11 @@ class App:
         
         self.width_sc = questions[0][2]
         self.height_sc = questions[1][2]
-        self.fps = questions[2][2]
-        self.environment.step_time = questions[3][2]
-        self.environment.acel = questions[4][2]
-        self.environment.pack = questions[5][2]
+        self.environment.init_field(questions[2][2],questions[3][2])
+        self.fps = questions[4][2]
+        self.environment.step_time = questions[5][2]
+        self.environment.acel = questions[6][2]
+        self.environment.pack = questions[7][2]
         self.width_gm = int((self.width_sc / 3 ) * 2)
         self.height_gm = int((self.height_sc / 3) * 2)
         self.size_x = self.width_gm/self.environment.x
@@ -171,37 +172,64 @@ class App:
         maximum = 2
         br = False#brrrrrrrrr
         
-        image,rect = self.reload_image(now)
+        try:
+            image,rect = self.reload_image(now)
+            
+            
+            while True:
+                self.screen.blit(image,rect)
+                
+                
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                    elif event.type == pg.KEYDOWN:
+                        name = pg.key.name(event.key)
+                        if name == 'd' or name == 'right':
+                            if now < maximum -1:
+                                now+=1
+                                image,rect = self.reload_image(now)
+                                rect = image.get_rect()
+                        elif name == 'a' or name == 'left':
+                            if now > 0:
+                                now -= 1
+                                image,rect = self.reload_image(now)
+                        elif name == 'return':
+                            br = True
+                            break
+                
+                if br:
+                    break
+                pg.display.flip()
+                self.screen.fill((0,0,0))
+                clock.tick(30)
+                pg.display.set_caption('Guide')
         
-        
-        while True:
-            self.screen.blit(image,rect)
-            
-            
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                elif event.type == pg.KEYDOWN:
-                    name = pg.key.name(event.key)
-                    if name == 'd' or name == 'right':
-                        if now < maximum -1:
-                            now+=1
-                            image,rect = self.reload_image(now)
-                            rect = image.get_rect()
-                    elif name == 'a' or name == 'left':
-                        if now > 0:
-                            now -= 1
-                            image,rect = self.reload_image(now)
-                    elif name == 'return':
-                        br = True
-                        break
-            
-            if br:
-                break
-            pg.display.flip()
-            self.screen.fill((0,0,0))
-            clock.tick(30)
-            pg.display.set_caption('Guide')
+        except:
+            while True:
+                self.write('For guide you have to download some images',(255,0,0),(20,20),50)
+                self.write('But if you dont need in guide you can dont do it', (255,0,0), (20,400),50)
+                self.write('Press Enter to return',(255,0,0),(0,500),40)
+                
+                br = False
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                    elif event.type == pg.KEYDOWN:
+                        name = pg.key.name(event.key)
+                        if name == 'return':
+                            br = True
+                            break
+                    
+                if br:break 
+                pg.display.flip()
+                self.screen.fill((0,0,0))
+                clock.tick(30)
+                pg.display.set_caption('Guide(no images)')  
+
+
+
+                      
                 
     def make_fig_menu(self,make_new_fig,cur_fig=0):        
             
@@ -529,7 +557,9 @@ class App:
             pg.draw.polygon(self.screen,(0,255,0),tr_rg_f)
             
             pg.draw.polygon(self.screen,(255,0,0),add_fig_but)
-
+            self.write('Add',(100,100,100),(add_fig_but[0][0],add_fig_but[0][1]),20)
+            self.write('new',(100,100,100),(add_fig_but[0][0],add_fig_but[0][1]+20),20)
+            self.write('figure',(100,100,100),(add_fig_but[0][0],add_fig_but[0][1]+40),20)
             
             num = 0 #Count variable
             for to_dr in pac:#Drawing of packs (buttons what mean packs)
@@ -857,19 +887,22 @@ class Triangle(Figure):
 
 
 class Environment:
-    def __init__(self,x,y,packs,all_figures,stand_figs):
-        self.x = x
-        self.y = y
+    def __init__(self,packs,all_figures,stand_figs):
         self.stand_figs = stand_figs
-        self.field = [[False for y in range(self.y)] for x in range(self.x)]
         self.spawned = False
         self.packs = packs
         self.pack = 0
         self.all_figures = all_figures
         self.figures = self.packs[self.pack]
-        self.spawn()
+        #self.spawn()
         self.end_game = True
         self.score = 0
+        
+    
+    def init_field(self,x,y):
+        self.x = x
+        self.y = y
+        self.field = [[False for y in range(self.y)] for x in range(self.x)]
         self.color_field = [[(0,0,0) for y in range(self.y)] for x in range(self.x)]
     
     def clean_all(self):
@@ -1089,7 +1122,7 @@ if __name__ == '__main__':
     
 
 
-    environment = Environment(10,20,packs,figures,stand_figs)
+    environment = Environment(packs,figures,stand_figs)
     app = App(environment)
     app.set_draw()
-    app.draw()
+    #app.draw()
